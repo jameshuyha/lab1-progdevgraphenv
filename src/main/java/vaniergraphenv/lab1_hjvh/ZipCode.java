@@ -1,7 +1,5 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
+// Git Repo Link: https://github.com/jameshuyha/lab1-progdevgraphenv.git
+
 package vaniergraphenv.lab1_hjvh;
 
 
@@ -14,8 +12,8 @@ public class ZipCode {
     static private String barCode;
     
     public ZipCode(int zipCode) {
-        if (zipCode < 0 || zipCode > 99999) {
-            System.out.println("Error: Zip Code invalid format.");
+        if (zipCode > 99999) {
+            System.out.println("Error: " + zipCode + " is more than 5 digits.");
         }
         
         this.Zip = zipCode;
@@ -23,12 +21,66 @@ public class ZipCode {
     
     public ZipCode(String barCode) {
         this.barCode = barCode;
+        
+        if (barCode.length() != 27) {
+            System.out.println("Error: bar code must be in multiples of 5-binary digits.");
+            Zip = 0;
+            return;
+        }
+        
+        if (barCode.charAt(0) != '1' || barCode.charAt(26) != '1') {
+            System.out.println("Error: bar code missing a 1 at start or end.");
+            Zip = 0;
+            return;
+        }
+        
+        boolean valid = true;
+        
+        for (int i = 0; i < barCode.length(); i++) {
+            if (barCode.charAt(i) != '0' && barCode.charAt(i) != '1'){
+                System.out.println("bar code character: " + barCode.charAt(i) + " must be '0' or '1'.");
+                valid = false;
+            }
+        }
+        
+        if (!valid) {
+            Zip = 0;
+            return;
+        }
+        
+        int zeroCount = 0;
+        int oneCount = 0;
+        
+        for (int i = 1; i < 26; i += 5) {
+            String segment = barCode.substring(i, i + 5);
+            for (int j = 0; i < 5; i++) {
+                if (segment.charAt(j) == '0') {
+                    zeroCount++;
+                }
+                
+                if(segment.charAt(j) == '1') {
+                    oneCount++;
+                }
+            }
+            
+            if (zeroCount != 3 && oneCount != 2) {
+                System.out.println(segment + " has invalid sequence in the bar code.");
+                valid = false;
+            }
+        }
+        
+        if (!valid) {
+            Zip = 0;
+            return;
+        }
+        
         this.Zip = parseBarCode();
     }
     
     public String GetBarCode() {
         String zipString = String.valueOf(Zip); 
         String barCode = "1";
+        String zipFive = "";
         
         if (Zip < 0) {
             System.out.println("Error: Invalid Zip Code.");
@@ -40,8 +92,14 @@ public class ZipCode {
             }
         }
         
-        for (int i = 0; i < zipString.length(); i++) {
-            switch(String.valueOf(Zip).charAt(i)) {
+        if (zipString.length() > 5) {
+            zipFive += zipString.substring(1);
+        } else {
+            zipFive += zipString;
+        }
+        
+        for (int i = 0; i < zipFive.length(); i++) {
+            switch(zipFive.charAt(i)) {
 
                 case '0' -> barCode += "11000";
                 case '1' -> barCode += "00011";
@@ -62,11 +120,6 @@ public class ZipCode {
     }
     
     private static int parseBarCode() {
-        if (barCode.length() != 27 || barCode.charAt(0) != '1' || barCode.charAt(26) != '1') {
-            System.out.println("Error: Invalid barcode format.");
-            return 0;
-        }
-        
         String zipFromBar = "";
         
         for (int i = 1; i < 26; i += 5) {
